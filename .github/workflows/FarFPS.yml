@@ -76,11 +76,11 @@ jobs:
           semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
-      - name: 🧮 Commit Id
+      - name: 🔍 Commit Id
         id: commitId
         working-directory: ${{ env.REPO_LOCAL }}
         run: |
-          commitId=$(git rev-parse origin/${{ inputs.sourceBranchName }})
+          commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
           echo "COMMIT ID: $commitId"
           echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
       - name: 🪛 Build
