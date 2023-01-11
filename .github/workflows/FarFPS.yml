@@ -74,49 +74,49 @@ jobs:
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT      
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
-      # - name: 📥 Cache [Library]
-      #   uses: actions/cache@v3
-      #   if: always()
-      #   with:
-      #     path: ${{ env.REPO_LOCAL }}/Library
-      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
-      # - name: 🪛 Build
-      #   uses: game-ci/unity-builder@v2.1.2
-      #   env:
-      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #     ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
-      #   with:
-      #     targetPlatform: ${{ matrix.targetPlatform }}
-      #     projectPath: ${{ env.REPO_LOCAL }}
-      #     versioning: Custom
-      #     version: ${{ steps.semVer.outputs.SEM_VER }}
-      #     unityVersion: ${{ env.UNITY_VERSION }}
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        if: always()
+        with:
+          path: ${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      - name: 🪛 Build
+        uses: game-ci/unity-builder@v2.1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: ${{ env.REPO_LOCAL }}
+          versioning: Custom
+          version: ${{ steps.semVer.outputs.SEM_VER }}
+          unityVersion: ${{ env.UNITY_VERSION }}
       # - uses: actions/upload-artifact@v3
       #   with:
       #     name: ${{ env.PROJECT_NAME }}-Build-${{ env.UNITY_VERSION }}-${{ matrix.targetPlatform }}
       #     path: build/${{ matrix.targetPlatform }}
       #     retention-days: 1
-      # - name: 📁 Rename File [Android.apk]
-      #   if: matrix.targetPlatform == 'Android'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}
-      # - name: 📁 Rename Directory [WebGL]
-      #   if: matrix.targetPlatform == 'WebGL'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}          
-      # - name: 📤 Transfer files via FTP
-      #   uses: ercindedeoglu/ftp-transfer-action@v1
-      #   with:
-      #     localDir: "build/"
-      #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
-      #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-      #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-      #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+      - name: 📁 Rename File [Android.apk]
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📁 Rename Directory [WebGL]
+        if: matrix.targetPlatform == 'WebGL'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
+          sudo rm -rf build/${{ matrix.targetPlatform }}          
+      - name: 📤 Transfer files via FTP
+        uses: ercindedeoglu/ftp-transfer-action@v1
+        with:
+          localDir: "build/"
+          remoteDir: "build/${{ env.PROJECT_NAME }}/"
+          host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+          user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+          password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
   postCommentToPR:
     needs: buildForAllSupportedPlatforms   
     if: inputs.prNumber != '0'
@@ -133,31 +133,15 @@ jobs:
           numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
           echo ${numbers[@]}
           echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
-      # - name: "📨 Posting to issues"
-      #   run: |
-      #     numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
-      #     for number in "${numbers[@]}"
-      #     do
-      #       curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
-      #       --header 'Accept: application/vnd.github+json' \
-      #       --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-      #       --header 'X-GitHub-Api-Version: 2022-11-28' \
-      #       --header 'Content-Type: application/json' \
-      #       --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
-      #     done
-      - name: "📨 Posting to Version BUMP Discussion"
+      - name: "📨 Posting to issues"
         run: |
-          curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/discussions/${{ env.DISCUSSION_ID }}/comments" \
-          --header 'Accept: application/vnd.github+json' \
-          --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-          --header 'X-GitHub-Api-Version: 2022-11-28' \
-          --header 'Content-Type: application/json' \
-          --data-raw '{"body": "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"}'
-      - name: "📨 Posting to Releases Discussion"
-        run: |
-          curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/discussions" \
-          --header 'Accept: application/vnd.github+json' \
-          --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-          --header 'X-GitHub-Api-Version: 2022-11-28' \
-          --header 'Content-Type: application/json' \
-          --data-raw '{"category_id": "releases", title": "🎉 New Release: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}", "body": "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"}'
+          numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
+          for number in "${numbers[@]}"
+          do
+            curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
+          done
