@@ -40,7 +40,7 @@ jobs:
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
           - Android # Build an Android .apk standalone app.
-          #- WebGL # WebGL.
+          - WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
         run: |
@@ -48,68 +48,29 @@ jobs:
           echo "Target Branch: ${{ inputs.targetBranchName }}"
           echo "Source Branch: ${{ inputs.sourceBranchName }}"
           echo "PR: ${{ inputs.prNumber }}"
-      - name: Get issues
-        id: get_issues
+      - name: 📥 Checkout Git Repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+          ref: ${{ inputs.targetBranchName }}
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+          lfs: true
+          path: ${{ env.REPO_LOCAL }}
+      - name: 🧮 Commit Count
+        id: commitCount
+        working-directory: ${{ env.REPO_LOCAL }}
         run: |
-          sudo apt-get install -y jq
-          response=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" https://api.github.com/repos/${{ env.REPO }}/issues/${{ inputs.prNumber }}/timeline)
-          numbers=( $(echo $response | jq -r '.[] | select(.message!=null) | .message | match("#(\\d+)").string' | grep -o '[0-9]\+') )
-          numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
-          echo ${numbers[@]}
-          echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
-      - name: Write issues
-        id: write_issues
+          commitcount=$(git rev-list HEAD --count)
+          echo "COMMIT COUNT: $commitcount"
+          echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
+      - name: 🌅 Semantic Version
+        id: semVer
         run: |
-          echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS }}
-      - name: "📨 Posting"
-        run: |
-          numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
-          for number in "${numbers[@]}"
-          do
-            curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
-            --header 'Accept: application/vnd.github+json' \
-            --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{"body":"Some Test Comments"}'
-          done
-
-
-      # - name: "📨 Posting"
-      #   run: |
-      #     for number in "${numbers[@]}"
-      #     do
-      #       curl --location --request POST 'https://api.github.com/repos/${{ env.REPO }}/pulls/$number/reviews' \
-      #       --header 'Accept: application/vnd.github+json' \
-      #       --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-      #       --header 'X-GitHub-Api-Version: 2022-11-28' \
-      #       --header 'Content-Type: application/json' \
-      #       --data-raw '{"body":"Some Test Comments"}'
-      #     done
-
-      # - name: 📥 Checkout Git Repository
-      #   uses: actions/checkout@v3
-      #   with:
-      #     repository: ${{ env.REPO }}
-      #     ref: ${{ inputs.targetBranchName }}
-      #     token: ${{ secrets.PAT }}
-      #     fetch-depth: 0
-      #     lfs: true
-      #     path: ${{ env.REPO_LOCAL }}
-      # - name: 🧮 Commit Count
-      #   id: commitCount
-      #   working-directory: ${{ env.REPO_LOCAL }}
-      #   run: |
-      #     commitcount=$(git rev-list HEAD --count)
-      #     echo "COMMIT COUNT: $commitcount"
-      #     echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
-      # - name: 🌅 Semantic Version
-      #   id: semVer
-      #   run: |
-      #     commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
-      #     semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
-      #     echo "SEMANTIC VERSION: " $semver
-      #     echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
+          commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
+          semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
+          echo "SEMANTIC VERSION: " $semver
+          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
       # - name: 📥 Cache [Library]
       #   uses: actions/cache@v3
       #   if: always()
@@ -128,11 +89,11 @@ jobs:
       #     versioning: Custom
       #     version: ${{ steps.semVer.outputs.SEM_VER }}
       #     unityVersion: ${{ env.UNITY_VERSION }}
-      # # - uses: actions/upload-artifact@v3
-      # #   with:
-      # #     name: ${{ env.PROJECT_NAME }}-Build-${{ env.UNITY_VERSION }}-${{ matrix.targetPlatform }}
-      # #     path: build/${{ matrix.targetPlatform }}
-      # #     retention-days: 1
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{ env.PROJECT_NAME }}-Build-${{ env.UNITY_VERSION }}-${{ matrix.targetPlatform }}
+      #     path: build/${{ matrix.targetPlatform }}
+      #     retention-days: 1
       # - name: 📁 Rename File [Android.apk]
       #   if: matrix.targetPlatform == 'Android'
       #   run: |
@@ -153,25 +114,36 @@ jobs:
       #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
       #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
       #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
-  # postCommentToPR:
-  #   needs: buildForAllSupportedPlatforms   
-  #   if: inputs.prNumber != '0'
-  #   name: 🚩 Post comment for ${{ inputs.prNumber }}
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 180
-  #   steps:
-  #     - name: "📨 Posting"
-  #       run: |
-  #         curl --location --request POST 'https://api.github.com/repos/${{ env.REPO }}/pulls/${{ inputs.prNumber }}/reviews' \
-  #         --header 'Accept: application/vnd.github+json' \
-  #         --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-  #         --header 'X-GitHub-Api-Version: 2022-11-28' \
-  #         --header 'Content-Type: application/json' \
-  #         --data-raw '{"body":"Some Test Comments"}'
+  postCommentToPR:
+    needs: buildForAllSupportedPlatforms   
+    if: inputs.prNumber != '0'
+    name: 🚩 Post comment for ${{ inputs.prNumber }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: 💘 Get related issues
+        id: get_issues
+        run: |
+          sudo apt-get install -y jq
+          response=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" https://api.github.com/repos/${{ env.REPO }}/issues/${{ inputs.prNumber }}/timeline)
+          numbers=( $(echo $response | jq -r '.[] | select(.message!=null) | .message | match("#(\\d+)").string' | grep -o '[0-9]\+') )
+          numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+          echo ${numbers[@]}
+          echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
 
+      - name: "📨 Posting"
+        run: |
+          echo ${{ steps.semVer.outputs.SEM_VER }}
 
-# - name: Extract message field
-#   run: |
-#     apt-get update && apt-get install jq -y
-#     echo "${{ steps.get_issues.outputs.data }}" | jq '.message'
-
+      # - name: "📨 Posting"
+      #   run: |
+      #     numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
+      #     for number in "${numbers[@]}"
+      #     do
+      #       curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
+      #       --header 'Accept: application/vnd.github+json' \
+      #       --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+      #       --header 'X-GitHub-Api-Version: 2022-11-28' \
+      #       --header 'Content-Type: application/json' \
+      #       --data-raw '{"body":"Some Test Comments"}'
+      #     done
