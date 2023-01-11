@@ -40,7 +40,7 @@ jobs:
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
           - Android # Build an Android .apk standalone app.
-          - WebGL # WebGL.
+          #- WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
         run: |
@@ -61,6 +61,26 @@ jobs:
         id: write_issues
         run: |
           echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS }}
+      - name: "📨 Posting"
+        run: |
+          numbers=($steps.get_issues.outputs.ISSUE_NUMBERS)
+          for number in "${numbers[@]}"
+          do
+            echo $number
+          done
+
+
+      # - name: "📨 Posting"
+      #   run: |
+      #     for number in "${numbers[@]}"
+      #     do
+      #       curl --location --request POST 'https://api.github.com/repos/${{ env.REPO }}/pulls/$number/reviews' \
+      #       --header 'Accept: application/vnd.github+json' \
+      #       --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+      #       --header 'X-GitHub-Api-Version: 2022-11-28' \
+      #       --header 'Content-Type: application/json' \
+      #       --data-raw '{"body":"Some Test Comments"}'
+      #     done
 
       # - name: 📥 Checkout Git Repository
       #   uses: actions/checkout@v3
