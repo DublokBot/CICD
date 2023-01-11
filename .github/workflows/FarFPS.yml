@@ -24,6 +24,7 @@ env:
   UNITY_VERSION: 2020.3.43f1
   REPO_LOCAL: ./repo
   REPO: DublokSoftware/FarFPS.Unity
+  DISCUSSION_ID: 31
 
 jobs:
   buildForAllSupportedPlatforms:
@@ -132,12 +133,7 @@ jobs:
           numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
           echo ${numbers[@]}
           echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
-
-      - name: "📨 Posting"
-        run: |
-          echo ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
-
-      - name: "📨 Posting"
+      - name: "📨 Posting to issues"
         run: |
           numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
           for number in "${numbers[@]}"
@@ -147,5 +143,21 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.PAT }}' \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
-            --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WEBGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [ANDROID](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
+            --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
           done
+      - name: "📨 Posting to Version BUMP Discussion"
+        run: |
+          curl --location --request POST "https://api.github.com/repos/OWNER/REPO/discussions/${{ env.DISCUSSION_ID }}/comments" \
+          --header 'Accept: application/vnd.github+json' \
+          --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+          --header 'X-GitHub-Api-Version: 2022-11-28' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{"body": "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"}'
+      - name: "📨 Posting to Releases Discussion"
+        run: |
+          curl --location --request POST "https://api.github.com/repos/OWNER/REPO/discussions" \
+          --header 'Accept: application/vnd.github+json' \
+          --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+          --header 'X-GitHub-Api-Version: 2022-11-28' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{"category_id": "releases", title": "🎉 New Release: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}", "body": "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"}'
