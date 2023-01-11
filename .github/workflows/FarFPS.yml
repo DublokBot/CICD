@@ -72,15 +72,6 @@ jobs:
           semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT      
-    outputs:
-      sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
-      - name: 📥 Cache [Library]
-        uses: actions/cache@v3
-        if: always()
-        with:
-          path: ${{ env.REPO_LOCAL }}/Library
-          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🪛 Build
         uses: game-ci/unity-builder@v2.1.2
         env:
@@ -117,6 +108,15 @@ jobs:
           host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
           user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
           password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+    outputs:
+      sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        if: always()
+        with:
+          path: ${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
   postCommentToPR:
     needs: buildForAllSupportedPlatforms   
     if: inputs.prNumber != '0'
