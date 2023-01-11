@@ -56,11 +56,11 @@ jobs:
           numbers=( $(echo $response | jq -r '.[] | select(.message!=null) | .message | match("#(\\d+)").string' | grep -o '[0-9]\+') )
           numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
           echo ${numbers}
-          echo "ISSUE_NUMBERS=$numbers[@]" >> $GITHUB_OUTPUT
+          echo "ISSUE_NUMBERS=$numbers" >> $GITHUB_OUTPUT
       - name: Write issues
         id: write_issues
         run: |
-          echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS[@] }}
+          echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS }}
 
       # - name: 📥 Checkout Git Repository
       #   uses: actions/checkout@v3
