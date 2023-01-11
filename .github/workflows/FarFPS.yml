@@ -61,7 +61,7 @@ jobs:
       - name: Write issues
         id: write_issues
         run: |
-          echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS }}
+          echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS[@] }}
 
       # - name: 📥 Checkout Git Repository
       #   uses: actions/checkout@v3
