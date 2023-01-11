@@ -18,14 +18,11 @@ on:
         description: "Pull request number"
         required: true
         default: "0"
-
 env:
   PROJECT_NAME: FarFPS
   UNITY_VERSION: 2020.3.43f1
   REPO_LOCAL: ./repo
   REPO: DublokSoftware/FarFPS.Unity
-  DISCUSSION_ID: 31
-
 jobs:
   buildForAllSupportedPlatforms:
     name: 🧱 Build for ${{ matrix.targetPlatform }}
@@ -57,7 +54,14 @@ jobs:
           token: ${{ secrets.PAT }}
           fetch-depth: 0
           lfs: true
-          path: ${{ env.REPO_LOCAL }}
+          path: ${{ env.REPO_LOCAL }}          
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        if: always()
+        with:
+          path: ${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🧮 Commit Count
         id: commitCount
         working-directory: ${{ env.REPO_LOCAL }}
@@ -71,7 +75,14 @@ jobs:
           commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
           semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
-          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT      
+          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
+      - name: 🧮 Commit Id
+        id: commitId
+        working-directory: ${{ env.REPO_LOCAL }}
+        run: |
+          commitId=$(git rev-parse origin/${{ inputs.sourceBranchName }})
+          echo "COMMIT ID: $commitId"
+          echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
       - name: 🪛 Build
         uses: game-ci/unity-builder@v2.1.2
         env:
@@ -110,13 +121,7 @@ jobs:
           password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
-      - name: 📥 Cache [Library]
-        uses: actions/cache@v3
-        if: always()
-        with:
-          path: ${{ env.REPO_LOCAL }}/Library
-          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
   postCommentToPR:
     needs: buildForAllSupportedPlatforms   
     if: inputs.prNumber != '0'
@@ -143,5 +148,12 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.PAT }}' \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
-            --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n* [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
+            --data-raw "{\"body\":\"
+            # 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n
+            **Branch:** ${{ inputs.sourceBranchName }}\n
+            **Branch Version:** [${{ env.REPO }}](https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }})\n
+            **Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n
+            ## 🚀 Releases\n
+            * [WebGL](https://release.dublok.com/build/FarFPS/dev/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n
+            * [Android](https://release.dublok.com/build/FarFPS/dev/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
           done
