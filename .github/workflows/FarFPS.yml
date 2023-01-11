@@ -40,7 +40,7 @@ jobs:
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
           - Android # Build an Android .apk standalone app.
-          - WebGL # WebGL.
+          #- WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
         run: |
@@ -70,7 +70,9 @@ jobs:
           commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
           semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
-          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
+          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT      
+      outputs:
+        sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
       # - name: 📥 Cache [Library]
       #   uses: actions/cache@v3
       #   if: always()
@@ -133,7 +135,7 @@ jobs:
 
       - name: "📨 Posting"
         run: |
-          echo ${{ steps.semVer.outputs.SEM_VER }}
+          echo ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
 
       # - name: "📨 Posting"
       #   run: |
