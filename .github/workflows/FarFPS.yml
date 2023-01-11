@@ -63,7 +63,7 @@ jobs:
           echo ${{ steps.get_issues.outputs.ISSUE_NUMBERS }}
       - name: "📨 Posting"
         run: |
-          numbers=($steps.get_issues.outputs.ISSUE_NUMBERS)
+          numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
           for number in "${numbers[@]}"
           do
             echo $number
