@@ -57,7 +57,7 @@ jobs:
           numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
           echo ${numbers[@]}
 
-          echo "ISSUE_NUMBERS=$numbers[@]" >> $GITHUB_OUTPUT
+          echo "ISSUE_NUMBERS=$numbers" >> $GITHUB_OUTPUT
       - name: Write issues
         id: write_issues
         run: |
