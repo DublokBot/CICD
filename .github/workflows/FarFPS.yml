@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
-          path: build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          path: build/
           retention-days: 1
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
@@ -171,14 +171,14 @@ jobs:
         with:
           name: build_${{ env.PROJECT_NAME }}_WebGL_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
           path: build/
-      # - name: 📤 Transfer files via FTP
-      #   uses: ercindedeoglu/ftp-transfer-action@v1
-      #   with:
-      #     localDir: "build/"
-      #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
-      #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-      #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-      #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+      - name: 📤 Transfer files via FTP
+        uses: ercindedeoglu/ftp-transfer-action@v1
+        with:
+          localDir: "build/"
+          remoteDir: "build/${{ env.PROJECT_NAME }}/"
+          host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+          user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+          password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
   posting:
     needs: [buildForAllSupportedPlatforms, upload]   
     name: 🚩 Post comments and messages
