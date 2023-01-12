@@ -39,7 +39,7 @@ jobs:
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
           - Android # Build an Android .apk standalone app.
-          #- WebGL # WebGL.
+          - WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
         run: |
@@ -156,7 +156,7 @@ jobs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
       commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
   upload:
-    needs: buildForAllSupportedPlatforms   
+    needs: buildForAllSupportedPlatforms
     name: 📤 Upload
     runs-on: ubuntu-latest
     timeout-minutes: 180
