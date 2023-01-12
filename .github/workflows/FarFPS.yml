@@ -196,7 +196,6 @@ jobs:
           echo ${numbers[@]}
           echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
       - name: "📨 Posting to issues"
-        needs: get_issues
         run: |
           numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
           for number in "${numbers[@]}"
