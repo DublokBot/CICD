@@ -137,26 +137,56 @@ jobs:
         run: |
           sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
           sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
-          sudo rm -rf build/${{ matrix.targetPlatform }}          
-      - name: 📤 Transfer files via FTP
-        uses: ercindedeoglu/ftp-transfer-action@v1
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      # - name: 📤 Transfer files via FTP
+      #   uses: ercindedeoglu/ftp-transfer-action@v1
+      #   with:
+      #     localDir: "build/"
+      #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
+      #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+      #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+      #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v3.1.2
         with:
-          localDir: "build/"
-          remoteDir: "build/${{ env.PROJECT_NAME }}/"
-          host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-          user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-          password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+          name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
+          path: build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          retention-days: 1
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
       commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
-  postCommentToPR:
+  upload:
     needs: buildForAllSupportedPlatforms   
-    if: inputs.prNumber != '0'
-    name: 🚩 Post comment for ${{ inputs.prNumber }}
+    name: 📤 Upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: 📥 (Android) Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_${{ env.PROJECT_NAME }}_Android_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
+          path: build/
+      - name: 📥 (WebGL) Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_${{ env.PROJECT_NAME }}_WebGL_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
+          path: build/
+      # - name: 📤 Transfer files via FTP
+      #   uses: ercindedeoglu/ftp-transfer-action@v1
+      #   with:
+      #     localDir: "build/"
+      #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
+      #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+      #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+      #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+  posting:
+    needs: [buildForAllSupportedPlatforms, upload]   
+    name: 🚩 Post comments and messages
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
       - name: 💘 Get related issues
+        if: inputs.prNumber != '0'
         id: get_issues
         run: |
           sudo apt-get install -y jq
@@ -166,6 +196,7 @@ jobs:
           echo ${numbers[@]}
           echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
       - name: "📨 Posting to issues"
+        needs: get_issues
         run: |
           numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
           for number in "${numbers[@]}"
@@ -177,17 +208,11 @@ jobs:
             --header 'Content-Type: application/json' \
             --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** [${{ env.REPO }}](https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }})\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* [WebGL](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
           done
-  postToDiscord:
-    needs: buildForAllSupportedPlatforms
-    name: 🚩 Post discord messsage
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    steps:
-      - name: "📨 Posting"
+      - name: "📨 Posting to discord"
         run: |
-            curl --location --request POST "https://discord.com/api/channels/${{ env.DISCORD_CHANNEL_ID}}/messages" \
-            --header 'Accept: application/vnd.github+json' \
-            --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            --header 'Content-Type: application/json' \
-            --data-raw "{\"content\":\"**😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**🚀 Releases:**\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
+          curl --location --request POST "https://discord.com/api/channels/${{ env.DISCORD_CHANNEL_ID}}/messages" \
+          --header 'Accept: application/vnd.github+json' \
+          --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
+          --header 'X-GitHub-Api-Version: 2022-11-28' \
+          --header 'Content-Type: application/json' \
+          --data-raw "{\"content\":\"**😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**🚀 Releases:**\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
