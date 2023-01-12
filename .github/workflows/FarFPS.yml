@@ -56,13 +56,13 @@ jobs:
           fetch-depth: 0
           lfs: true
           path: ${{ env.REPO_LOCAL }}
-      # - name: 📥 Cache [Library]
-      #   uses: actions/cache@v3
-      #   if: always()
-      #   with:
-      #     path: ${{ env.REPO_LOCAL }}/Library
-      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        if: always()
+        with:
+          path: ${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🧮 Commit Count
         id: commitCount
         working-directory: ${{ env.REPO_LOCAL }}
@@ -84,68 +84,68 @@ jobs:
           commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
           echo "COMMIT ID: $commitId"
           echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
-      # - name: 🪛 Build
-      #   uses: game-ci/unity-builder@v2.1.2
-      #   env:
-      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #     ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
-      #   with:
-      #     targetPlatform: ${{ matrix.targetPlatform }}
-      #     projectPath: ${{ env.REPO_LOCAL }}
-      #     versioning: Custom
-      #     version: ${{ steps.semVer.outputs.SEM_VER }}
-      #     unityVersion: ${{ env.UNITY_VERSION }}
-      # - name: 📁 Rename File [Android.apk]
-      #   if: matrix.targetPlatform == 'Android'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}
-      # - name: 📁 Rename Directory [WebGL]
-      #   if: matrix.targetPlatform == 'WebGL'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}          
-      # - name: 📤 Transfer files via FTP
-      #   uses: ercindedeoglu/ftp-transfer-action@v1
-      #   with:
-      #     localDir: "build/"
-      #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
-      #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-      #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-      #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+      - name: 🪛 Build
+        uses: game-ci/unity-builder@v2.1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: ${{ env.REPO_LOCAL }}
+          versioning: Custom
+          version: ${{ steps.semVer.outputs.SEM_VER }}
+          unityVersion: ${{ env.UNITY_VERSION }}
+      - name: 📁 Rename File [Android.apk]
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📁 Rename Directory [WebGL]
+        if: matrix.targetPlatform == 'WebGL'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
+          sudo rm -rf build/${{ matrix.targetPlatform }}          
+      - name: 📤 Transfer files via FTP
+        uses: ercindedeoglu/ftp-transfer-action@v1
+        with:
+          localDir: "build/"
+          remoteDir: "build/${{ env.PROJECT_NAME }}/"
+          host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+          user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+          password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
       commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
-  # postCommentToPR:
-  #   needs: buildForAllSupportedPlatforms   
-  #   if: inputs.prNumber != '0'
-  #   name: 🚩 Post comment for ${{ inputs.prNumber }}
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 180
-  #   steps:
-  #     - name: 💘 Get related issues
-  #       id: get_issues
-  #       run: |
-  #         sudo apt-get install -y jq
-  #         response=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" https://api.github.com/repos/${{ env.REPO }}/issues/${{ inputs.prNumber }}/timeline)
-  #         numbers=( $(echo $response | jq -r '.[] | select(.message!=null) | .message | match("#(\\d+)").string' | grep -o '[0-9]\+')" "${{ inputs.prNumber }})
-  #         numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
-  #         echo ${numbers[@]}
-  #         echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
-  #     - name: "📨 Posting to issues"
-  #       run: |
-  #         numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
-  #         for number in "${numbers[@]}"
-  #         do
-  #           curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
-  #           --header 'Accept: application/vnd.github+json' \
-  #           --header 'Authorization: Bearer ${{ secrets.PAT }}' \
-  #           --header 'X-GitHub-Api-Version: 2022-11-28' \
-  #           --header 'Content-Type: application/json' \
-  #           --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** [${{ env.REPO }}](https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }})\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* [WebGL](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
-  #         done
+  postCommentToPR:
+    needs: buildForAllSupportedPlatforms   
+    if: inputs.prNumber != '0'
+    name: 🚩 Post comment for ${{ inputs.prNumber }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: 💘 Get related issues
+        id: get_issues
+        run: |
+          sudo apt-get install -y jq
+          response=$(curl -s -H "Authorization: token ${{ secrets.PAT }}" https://api.github.com/repos/${{ env.REPO }}/issues/${{ inputs.prNumber }}/timeline)
+          numbers=( $(echo $response | jq -r '.[] | select(.message!=null) | .message | match("#(\\d+)").string' | grep -o '[0-9]\+')" "${{ inputs.prNumber }})
+          numbers=($(echo "${numbers[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+          echo ${numbers[@]}
+          echo "ISSUE_NUMBERS=${numbers[@]}" >> $GITHUB_OUTPUT
+      - name: "📨 Posting to issues"
+        run: |
+          numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
+          for number in "${numbers[@]}"
+          do
+            curl --location --request POST "https://api.github.com/repos/${{ env.REPO }}/issues/$number/comments" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** [${{ env.REPO }}](https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }})\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* [WebGL](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
+          done
   postToDiscord:
     needs: buildForAllSupportedPlatforms
     name: 🚩 Post discord messsage
