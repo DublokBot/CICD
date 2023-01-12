@@ -39,7 +39,7 @@ jobs:
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
           - Android # Build an Android .apk standalone app.
-          - WebGL # WebGL.
+          #- WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
         run: |
@@ -90,7 +90,7 @@ jobs:
           sudo swapoff -a
           sudo rm -f /swapfile
           sudo apt clean
-          docker rmi $(docker image ls -aq)
+          docker rmi $(docker images -q)
           df -h
           # Before
           echo "Disk space before:"
