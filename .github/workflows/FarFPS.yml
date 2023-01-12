@@ -159,6 +159,4 @@ jobs:
             --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
-            --data-raw ""
-
             --data-raw "{\"content\":\"**😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
