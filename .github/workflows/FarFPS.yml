@@ -23,6 +23,7 @@ env:
   UNITY_VERSION: 2020.3.43f1
   REPO_LOCAL: ./repo
   REPO: DublokSoftware/FarFPS.Unity
+  DISCORD_CHANNEL_ID: 1062954988990648320
 jobs:
   buildForAllSupportedPlatforms:
     name: 🧱 Build for ${{ matrix.targetPlatform }}
@@ -144,4 +145,24 @@ jobs:
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
             --data-raw "{\"body\":\"# 😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** [${{ env.REPO }}](https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }})\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* [WebGL](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)\"}"
+          done
+  postToDiscord:
+    needs: buildForAllSupportedPlatforms
+    name: 🚩 Post discord messsage
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: "📨 Posting"
+        run: |
+          numbers=(${{ steps.get_issues.outputs.ISSUE_NUMBERS }})
+          for number in "${numbers[@]}"
+          do
+            curl --location --request POST "https://discord.com/api/channels/${{ env.DISCORD_CHANNEL_ID}}/messages" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --data-raw ""
+
+            --data-raw "{\"content\":\"**😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n## 🚀 Releases\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
           done
