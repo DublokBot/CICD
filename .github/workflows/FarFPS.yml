@@ -61,16 +61,16 @@ jobs:
       #     fetch-depth: 0
       #     lfs: true
       #     path: ${{ env.REPO_LOCAL }}
-
-      # git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
-      # cd ${{ env.REPO_LOCAL }}
-      # echo "Starting checkout of commit id: ${{ inputs.commitId }}"
-      # git checkout ${{ inputs.commitId }}
-      - name: Checkout External Repository
+      - name: Checkout External Repository      
         run: |
           echo "Starting cloning of external repository"
-          curl -u ${{ secrets.AZURE_GIT_AUTH }} -o repo.zip -L -J "https://dev.azure.com/dublok/farfps.unity/_apis/git/repositories/farfps.unity/items?path=/&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=2&versionDescriptor%5Bversion%5D=${{ inputs.commitId }}&resolveLfs=true&%24format=zip&api-version=5.0&download=true"
-          unzip repo.zip -d ${{ env.REPO_LOCAL }}
+          git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
+          cd ${{ env.REPO_LOCAL }}
+          echo "Starting checkout of commit id: ${{ inputs.commitId }}"
+          git checkout ${{ inputs.commitId }}
+
+        # curl -u ${{ secrets.AZURE_GIT_AUTH }} -o repo.zip -L -J "https://dev.azure.com/dublok/farfps.unity/_apis/git/repositories/farfps.unity/items?path=/&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=2&versionDescriptor%5Bversion%5D=${{ inputs.commitId }}&resolveLfs=true&%24format=zip&api-version=5.0&download=true"
+        # unzip repo.zip -d ${{ env.REPO_LOCAL }}
       - name: 📥 Cache [Library]
         uses: actions/cache@v3
         with:
