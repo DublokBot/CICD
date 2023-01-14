@@ -6,10 +6,10 @@ on:
         description: "The reason for running the workflow"
         required: true
         default: "Manual run"
-      sourceBranchName:
-        description: "Source Branch name [dev-1-2, dev]"
-        required: true
-        default: "dev"
+      # sourceBranchName:
+      #   description: "Source Branch name [dev-1-2, dev]"
+      #   required: true
+      #   default: "dev"
       targetBranchName:
         description: "Branch name [dev, main]"
         required: true
@@ -44,6 +44,8 @@ jobs:
         - name: "📫 Reason: ${{ inputs.reason }}"
           run: |
             echo "Reason: ${{ inputs.reason }}"
+            echo "TargetBranchName: ${{ inputs.targetBranchName }}"
+            echo "PrNumber: ${{ inputs.prNumber }}"
 
   # buildForAllSupportedPlatforms:
   #   name: 🧱 Build for ${{ matrix.targetPlatform }}
