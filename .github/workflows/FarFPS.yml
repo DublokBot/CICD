@@ -87,83 +87,76 @@ jobs:
           semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
-      - name: 🔍 Commit Id
-        id: commitId
-        working-directory: ./${{ env.REPO_LOCAL }}
+      # - name: 🔍 Commit Id
+      #   id: commitId
+      #   working-directory: ./${{ env.REPO_LOCAL }}
+      #   run: |
+      #     commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
+      #     echo "COMMIT ID: $commitId"
+      #     echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
+      - name: 🧹 Free Disk Space
+        # if: matrix.targetPlatform == 'Android'
         run: |
-          commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
-          echo "COMMIT ID: $commitId"
-          echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
-      - name: 🔍 Commit Id2
-        id: commitId2
-        working-directory: ./${{ env.REPO_LOCAL }}
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker images -q)
+          df -h
+          # Before
+          echo "Disk space before:"
+          df -h
+          #echo "Listing 100 largest packages"
+          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+          #echo "Removing large packages"
+          #sudo apt-get remove -y '^ghc-8.*'
+          #sudo apt-get remove -y '^dotnet-.*'
+          #sudo apt-get remove -y '^llvm-.*'
+          #sudo apt-get remove -y 'php.*'
+          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          #sudo apt-get autoremove -y
+          #sudo apt-get clean
+          #df -h
+          echo "Removing large directories"
+          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+          rm -rf /usr/share/dotnet/
+          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          # After
+          echo "Disk space after:"
+          df -h
+      - name: 🪛 Build
+        uses: game-ci/unity-builder@v2.1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: ./${{ env.REPO_LOCAL }}
+          versioning: Custom
+          version: ${{ steps.semVer.outputs.SEM_VER }}
+          unityVersion: ${{ env.UNITY_VERSION }}
+      - name: 📁 Rename File [Android.apk]
+        if: matrix.targetPlatform == 'Android'
         run: |
-          commitId=$(git rev-parse origin/${{ inputs.commitId }}
-          echo "COMMIT ID2: $commitId"
-          echo "COMMIT_ID2=$commitId" >> $GITHUB_OUTPUT
-  #     - name: 🧹 Free Disk Space
-  #       # if: matrix.targetPlatform == 'Android'
-  #       run: |
-  #         sudo swapoff -a
-  #         sudo rm -f /swapfile
-  #         sudo apt clean
-  #         docker rmi $(docker images -q)
-  #         df -h
-  #         # Before
-  #         echo "Disk space before:"
-  #         df -h
-  #         #echo "Listing 100 largest packages"
-  #         #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-  #         #echo "Removing large packages"
-  #         #sudo apt-get remove -y '^ghc-8.*'
-  #         #sudo apt-get remove -y '^dotnet-.*'
-  #         #sudo apt-get remove -y '^llvm-.*'
-  #         #sudo apt-get remove -y 'php.*'
-  #         #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
-  #         #sudo apt-get autoremove -y
-  #         #sudo apt-get clean
-  #         #df -h
-  #         echo "Removing large directories"
-  #         # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
-  #         rm -rf /usr/share/dotnet/
-  #         # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
-  #         rm -rf "/usr/local/share/boost"
-  #         rm -rf "$AGENT_TOOLSDIRECTORY"
-  #         # After
-  #         echo "Disk space after:"
-  #         df -h
-  #     - name: 🪛 Build
-  #       uses: game-ci/unity-builder@v2.1.2
-  #       env:
-  #         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-  #         ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
-  #       with:
-  #         targetPlatform: ${{ matrix.targetPlatform }}
-  #         projectPath: ./${{ env.REPO_LOCAL }}
-  #         versioning: Custom
-  #         version: ${{ steps.semVer.outputs.SEM_VER }}
-  #         unityVersion: ${{ env.UNITY_VERSION }}
-  #     - name: 📁 Rename File [Android.apk]
-  #       if: matrix.targetPlatform == 'Android'
-  #       run: |
-  #         sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-  #         sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
-  #         sudo rm -rf build/${{ matrix.targetPlatform }}
-  #     - name: 📁 Rename Directory [WebGL]
-  #       if: matrix.targetPlatform == 'WebGL'
-  #       run: |
-  #         sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-  #         sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
-  #         sudo rm -rf build/${{ matrix.targetPlatform }}
-  #     - name: 📤 Upload artifacts
-  #       uses: actions/upload-artifact@v3.1.2
-  #       with:
-  #         name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
-  #         path: build/
-  #         retention-days: 1
-  #   outputs:
-  #     sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
-  #     commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📁 Rename Directory [WebGL]
+        if: matrix.targetPlatform == 'WebGL'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
+          path: build/
+          retention-days: 1
+    outputs:
+      sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
+      # commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
   # upload:
   #   needs: buildForAllSupportedPlatforms
   #   name: 📤 Upload
