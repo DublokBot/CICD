@@ -51,6 +51,7 @@ jobs:
           echo "Reason: ${{ inputs.reason }}"
           echo "TargetBranchName: ${{ inputs.targetBranchName }}"
           echo "PrNumber: ${{ inputs.prNumber }}"
+          echo "CommitId: ${{ inputs.commitId }}"
       # - name: 📥 Checkout Git Repository
       #   uses: actions/checkout@v3
       #   with:
@@ -73,18 +74,18 @@ jobs:
           path: ./${{ env.REPO_LOCAL }}/Library
           key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
           restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
-      - name: 🧮 Commit Count
-        id: commitCount
-        working-directory: ./${{ env.REPO_LOCAL }}
-        run: |
-          commitcount=$(git rev-list HEAD --count)
-          echo "COMMIT COUNT: $commitcount"
-          echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
+      # - name: 🧮 Commit Count
+      #   id: commitCount
+      #   working-directory: ./${{ env.REPO_LOCAL }}
+      #   run: |
+      #     commitcount=$(git rev-list HEAD --count)
+      #     echo "COMMIT COUNT: $commitcount"
+      #     echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
       - name: 🌅 Semantic Version
         id: semVer
         run: |
-          commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
-          semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
+          prNumber=${{ inputs.prNumber }}
+          semver=$(printf %09d $prNumber | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
       # - name: 🔍 Commit Id
@@ -129,7 +130,7 @@ jobs:
         uses: game-ci/unity-builder@v2.1.2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
+          ANDROID_VERSION_CODE: ${{ inputs.prNumber }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ./${{ env.REPO_LOCAL }}
