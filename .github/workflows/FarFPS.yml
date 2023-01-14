@@ -24,60 +24,42 @@ env:
   REPO_LOCAL: ./repo
   REPO: DublokSoftware/FarFPS.Unity
   DISCORD_CHANNEL_ID: "1062954988990648320"
+  AZURE_REPO: https://dublok@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity
 jobs:
-    buildForAllSupportedPlatforms:
-      name: 🧱 Build for ${{ matrix.targetPlatform }}
-      runs-on: ubuntu-latest
-      timeout-minutes: 180
-      strategy:
-        fail-fast: false
-        matrix:
-          targetPlatform:
-            #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-            #- StandaloneWindows # Build a Windows standalone.
-            #- StandaloneWindows64 # Build a Windows 64-bit standalone.
-            #- StandaloneLinux64 # Build a Linux 64-bit standalone.
-            #- iOS # Build an iOS player.
-            #- Android # Build an Android .apk standalone app.
-            - WebGL # WebGL.
-      steps:
-        - name: "📫 Reason: ${{ inputs.reason }}"
-          run: |
-            echo "Reason: ${{ inputs.reason }}"
-            echo "TargetBranchName: ${{ inputs.targetBranchName }}"
-            echo "PrNumber: ${{ inputs.prNumber }}"
-
-  # buildForAllSupportedPlatforms:
-  #   name: 🧱 Build for ${{ matrix.targetPlatform }}
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 180
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       targetPlatform:
-  #         #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-  #         #- StandaloneWindows # Build a Windows standalone.
-  #         #- StandaloneWindows64 # Build a Windows 64-bit standalone.
-  #         #- StandaloneLinux64 # Build a Linux 64-bit standalone.
-  #         #- iOS # Build an iOS player.
-  #         - Android # Build an Android .apk standalone app.
-  #         - WebGL # WebGL.
-  #   steps:
-  #     - name: "📫 Reason: ${{ inputs.reason }}"
-  #       run: |
-  #         echo "Reason: ${{ inputs.reason }}"
-  #         echo "Target Branch: ${{ inputs.targetBranchName }}"
-  #         echo "Source Branch: ${{ inputs.sourceBranchName }}"
-  #         echo "PR: ${{ inputs.prNumber }}"
-  #     - name: 📥 Checkout Git Repository
-  #       uses: actions/checkout@v3
-  #       with:
-  #         repository: ${{ env.REPO }}
-  #         ref: ${{ inputs.targetBranchName }}
-  #         token: ${{ secrets.PAT }}
-  #         fetch-depth: 0
-  #         lfs: true
-  #         path: ${{ env.REPO_LOCAL }}
+  buildForAllSupportedPlatforms:
+    name: 🧱 Build for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          #- StandaloneWindows # Build a Windows standalone.
+          #- StandaloneWindows64 # Build a Windows 64-bit standalone.
+          #- StandaloneLinux64 # Build a Linux 64-bit standalone.
+          #- iOS # Build an iOS player.
+          - Android # Build an Android .apk standalone app.
+          - WebGL # WebGL.
+    steps:
+      - name: "📫 Reason: ${{ inputs.reason }}"
+        run: |
+          echo "Reason: ${{ inputs.reason }}"
+          echo "TargetBranchName: ${{ inputs.targetBranchName }}"
+          echo "PrNumber: ${{ inputs.prNumber }}"
+      # - name: 📥 Checkout Git Repository
+      #   uses: actions/checkout@v3
+      #   with:
+      #     repository: ${{ env.REPO }}
+      #     ref: ${{ inputs.targetBranchName }}
+      #     token: ${{ secrets.PAT }}
+      #     fetch-depth: 0
+      #     lfs: true
+      #     path: ${{ env.REPO_LOCAL }}
+      - name: Checkout External Repository        
+        run: |
+          git clone https://${{ AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${env.REPO_LOCAL}
+          cd ${env.REPO_LOCAL}
   #     - name: 📥 Cache [Library]
   #       uses: actions/cache@v3
   #       if: always()
@@ -160,14 +142,6 @@ jobs:
   #         sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
   #         sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
   #         sudo rm -rf build/${{ matrix.targetPlatform }}
-  #     # - name: 📤 Transfer files via FTP
-  #     #   uses: ercindedeoglu/ftp-transfer-action@v1
-  #     #   with:
-  #     #     localDir: "build/"
-  #     #     remoteDir: "build/${{ env.PROJECT_NAME }}/"
-  #     #     host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-  #     #     user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-  #     #     password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
   #     - name: 📤 Upload artifacts
   #       uses: actions/upload-artifact@v3.1.2
   #       with:
