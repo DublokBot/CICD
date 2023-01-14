@@ -26,24 +26,24 @@ env:
   DISCORD_CHANNEL_ID: "1062954988990648320"
 jobs:
     buildForAllSupportedPlatforms:
-    name: 🧱 Build for ${{ matrix.targetPlatform }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          #- StandaloneWindows # Build a Windows standalone.
-          #- StandaloneWindows64 # Build a Windows 64-bit standalone.
-          #- StandaloneLinux64 # Build a Linux 64-bit standalone.
-          #- iOS # Build an iOS player.
-          #- Android # Build an Android .apk standalone app.
-          - WebGL # WebGL.
-    steps:
-      - name: "📫 Reason: ${{ inputs.reason }}"
-        run: |
-          echo "Reason: ${{ inputs.reason }}"
+      name: 🧱 Build for ${{ matrix.targetPlatform }}
+      runs-on: ubuntu-latest
+      timeout-minutes: 180
+      strategy:
+        fail-fast: false
+        matrix:
+          targetPlatform:
+            #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+            #- StandaloneWindows # Build a Windows standalone.
+            #- StandaloneWindows64 # Build a Windows 64-bit standalone.
+            #- StandaloneLinux64 # Build a Linux 64-bit standalone.
+            #- iOS # Build an iOS player.
+            #- Android # Build an Android .apk standalone app.
+            - WebGL # WebGL.
+      steps:
+        - name: "📫 Reason: ${{ inputs.reason }}"
+          run: |
+            echo "Reason: ${{ inputs.reason }}"
 
   # buildForAllSupportedPlatforms:
   #   name: 🧱 Build for ${{ matrix.targetPlatform }}
