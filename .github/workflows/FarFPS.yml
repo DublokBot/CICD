@@ -63,7 +63,7 @@ jobs:
       - name: Checkout External Repository      
         run: |
           echo "Starting cloning of external repository"
-          git clone --branch={{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
+          git clone --branch {{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
           cd ${{ env.REPO_LOCAL }}
           echo "Starting checkout of commit id: ${{ inputs.commitId }}"
           git checkout ${{ inputs.commitId }}
