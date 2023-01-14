@@ -56,19 +56,19 @@ jobs:
       #     fetch-depth: 0
       #     lfs: true
       #     path: ${{ env.REPO_LOCAL }}
-      - name: Checkout External Repository        
+      - name: Checkout External Repository      
+        working-directory: ${{ env.REPO_LOCAL }}
         run: |
-          git clone https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity repo
-          cd ${env.REPO_LOCAL}
+          git clone https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity .
           git checkout ${{ inputs.targetBranchName }}
 
-  #     - name: 📥 Cache [Library]
-  #       uses: actions/cache@v3
-  #       if: always()
-  #       with:
-  #         path: ${{ env.REPO_LOCAL }}/Library
-  #         key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-  #         restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      # - name: 📥 Cache [Library]
+      #   uses: actions/cache@v3
+      #   if: always()
+      #   with:
+      #     path: ${{ env.REPO_LOCAL }}/Library
+      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
   #     - name: 🧮 Commit Count
   #       id: commitCount
   #       working-directory: ${{ env.REPO_LOCAL }}
