@@ -62,13 +62,14 @@ jobs:
       #     path: ${{ env.REPO_LOCAL }}
       - name: Checkout External Repository      
         run: |
-          git clone --depth=1 --branch={{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
+          echo "Starting cloning of external repository"
+          git clone --branch={{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
           cd ${{ env.REPO_LOCAL }}
+          echo "Starting checkout of commit id: ${{ inputs.commitId }}"
           git checkout ${{ inputs.commitId }}
 
       - name: 📥 Cache [Library]
         uses: actions/cache@v3
-        if: always()
         with:
           path: ./${{ env.REPO_LOCAL }}/Library
           key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
