@@ -58,8 +58,10 @@ jobs:
       #     path: ${{ env.REPO_LOCAL }}
       - name: Checkout External Repository        
         run: |
-          git clone https://${{ AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${env.REPO_LOCAL}
+          git clone https://${{ secret.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${env.REPO_LOCAL}
           cd ${env.REPO_LOCAL}
+          git checkout ${{ inputs.targetBranchName }}
+
   #     - name: 📥 Cache [Library]
   #       uses: actions/cache@v3
   #       if: always()
