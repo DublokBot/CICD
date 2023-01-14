@@ -43,7 +43,7 @@ jobs:
           #- StandaloneWindows64 # Build a Windows 64-bit standalone.
           #- StandaloneLinux64 # Build a Linux 64-bit standalone.
           #- iOS # Build an iOS player.
-          - Android # Build an Android .apk standalone app.
+          - Android # Build an Android .apk standalone app. `
           #- WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
@@ -63,11 +63,10 @@ jobs:
       - name: Checkout External Repository      
         run: |
           echo "Starting cloning of external repository"
-          git clone --depth 1 --branch ${{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
+          git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
           cd ${{ env.REPO_LOCAL }}
           echo "Starting checkout of commit id: ${{ inputs.commitId }}"
           git checkout ${{ inputs.commitId }}
-
       - name: 📥 Cache [Library]
         uses: actions/cache@v3
         with:
