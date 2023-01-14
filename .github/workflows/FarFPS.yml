@@ -18,10 +18,14 @@ on:
         description: "Pull request number"
         required: true
         default: "0"
+      commitId:
+        description: "Commit Id"
+        required: true
+        default: "0"
 env:
   PROJECT_NAME: FarFPS
   UNITY_VERSION: 2020.3.43f1
-  REPO_LOCAL: ./repo
+  REPO_LOCAL: repo
   REPO: DublokSoftware/FarFPS.Unity
   DISCORD_CHANNEL_ID: "1062954988990648320"
   AZURE_REPO: https://dublok@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity
@@ -57,39 +61,46 @@ jobs:
       #     lfs: true
       #     path: ${{ env.REPO_LOCAL }}
       - name: Checkout External Repository      
-        working-directory: ${{ env.REPO_LOCAL }}
         run: |
-          git clone https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity .
-          git checkout ${{ inputs.targetBranchName }}
+          git clone --depth=1 --branch={{ inputs.targetBranchName }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity ${{ env.REPO_LOCAL }}
+          cd ${{ env.REPO_LOCAL }}
+          git checkout ${{ inputs.commitId }}
 
-      # - name: 📥 Cache [Library]
-      #   uses: actions/cache@v3
-      #   if: always()
-      #   with:
-      #     path: ${{ env.REPO_LOCAL }}/Library
-      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
-  #     - name: 🧮 Commit Count
-  #       id: commitCount
-  #       working-directory: ${{ env.REPO_LOCAL }}
-  #       run: |
-  #         commitcount=$(git rev-list HEAD --count)
-  #         echo "COMMIT COUNT: $commitcount"
-  #         echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
-  #     - name: 🌅 Semantic Version
-  #       id: semVer
-  #       run: |
-  #         commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
-  #         semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
-  #         echo "SEMANTIC VERSION: " $semver
-  #         echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
-  #     - name: 🔍 Commit Id
-  #       id: commitId
-  #       working-directory: ${{ env.REPO_LOCAL }}
-  #       run: |
-  #         commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
-  #         echo "COMMIT ID: $commitId"
-  #         echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        if: always()
+        with:
+          path: ./${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      - name: 🧮 Commit Count
+        id: commitCount
+        working-directory: ./${{ env.REPO_LOCAL }}
+        run: |
+          commitcount=$(git rev-list HEAD --count)
+          echo "COMMIT COUNT: $commitcount"
+          echo "COMMIT_COUNT=$commitcount" >> $GITHUB_OUTPUT
+      - name: 🌅 Semantic Version
+        id: semVer
+        run: |
+          commitCount=${{ steps.commitCount.outputs.COMMIT_COUNT }}
+          semver=$(printf %09d $commitCount | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
+          echo "SEMANTIC VERSION: " $semver
+          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
+      - name: 🔍 Commit Id
+        id: commitId
+        working-directory: ./${{ env.REPO_LOCAL }}
+        run: |
+          commitId=$(git rev-parse origin/${{ inputs.targetBranchName }})
+          echo "COMMIT ID: $commitId"
+          echo "COMMIT_ID=$commitId" >> $GITHUB_OUTPUT
+      - name: 🔍 Commit Id2
+        id: commitId2
+        working-directory: ./${{ env.REPO_LOCAL }}
+        run: |
+          commitId=$(git rev-parse origin/${{ inputs.commitId }}
+          echo "COMMIT ID2: $commitId"
+          echo "COMMIT_ID2=$commitId" >> $GITHUB_OUTPUT
   #     - name: 🧹 Free Disk Space
   #       # if: matrix.targetPlatform == 'Android'
   #       run: |
@@ -128,7 +139,7 @@ jobs:
   #         ANDROID_VERSION_CODE: ${{ steps.commitCount.outputs.COMMIT_COUNT }}
   #       with:
   #         targetPlatform: ${{ matrix.targetPlatform }}
-  #         projectPath: ${{ env.REPO_LOCAL }}
+  #         projectPath: ./${{ env.REPO_LOCAL }}
   #         versioning: Custom
   #         version: ${{ steps.semVer.outputs.SEM_VER }}
   #         unityVersion: ${{ env.UNITY_VERSION }}
