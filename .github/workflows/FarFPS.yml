@@ -22,6 +22,15 @@ on:
         description: "Commit Id"
         required: true
         default: "0"
+      workItems:
+        description: "Work items"
+        required: true
+        default: "0"
+      mergedPRs:
+        description: "Merged PRs"
+        required: true
+        default: "0"
+env:
 env:
   PROJECT_NAME: FarFPS
   UNITY_VERSION: 2020.3.43f1
@@ -52,6 +61,8 @@ jobs:
           echo "TargetBranchName: ${{ inputs.targetBranchName }}"
           echo "PrNumber: ${{ inputs.prNumber }}"
           echo "CommitId: ${{ inputs.commitId }}"
+          echo "WorkItems: ${{ inputs.workItems }}"
+          echo "MergedPRs: ${{ inputs.mergedPRs }}"
       # - name: 📥 Checkout Git Repository
       #   uses: actions/checkout@v3
       #   with:
