@@ -170,8 +170,7 @@ jobs:
           user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
           password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
   posting:
-    # needs: [buildForAllSupportedPlatforms, upload]
-    needs: [buildForAllSupportedPlatforms]   
+    needs: [buildForAllSupportedPlatforms, upload]
     name: 🚩 Post comments and messages
     runs-on: ubuntu-latest
     timeout-minutes: 180
