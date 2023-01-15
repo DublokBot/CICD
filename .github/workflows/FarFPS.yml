@@ -62,19 +62,19 @@ jobs:
           echo "CommitId: ${{ inputs.commitId }}"
           echo "WorkItems: ${{ inputs.workItems }}"
           echo "MergedPRs: ${{ inputs.mergedPRs }}"
-      # - name: Checkout External Repository      
-      #   run: |
-      #     echo "Starting cloning of external repository"
-      #     git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
-      #     cd ${{ env.REPO_LOCAL }}
-      #     echo "Starting checkout of commit id: ${{ inputs.commitId }}"
-      #     git checkout ${{ inputs.commitId }}
-      # - name: 📥 Cache [Library]
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ./${{ env.REPO_LOCAL }}/Library
-      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      - name: Checkout External Repository      
+        run: |
+          echo "Starting cloning of external repository"
+          git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
+          cd ${{ env.REPO_LOCAL }}
+          echo "Starting checkout of commit id: ${{ inputs.commitId }}"
+          git checkout ${{ inputs.commitId }}
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
+        with:
+          path: ./${{ env.REPO_LOCAL }}/Library
+          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+          restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🌅 Semantic Version
         id: semVer
         run: |
@@ -82,93 +82,93 @@ jobs:
           semver=$(printf %09d $prNumber | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
-      # - name: 🧹 Free Disk Space
-      #   # if: matrix.targetPlatform == 'Android'
-      #   run: |
-      #     sudo swapoff -a
-      #     sudo rm -f /swapfile
-      #     sudo apt clean
-      #     docker rmi $(docker images -q)
-      #     df -h
-      #     # Before
-      #     echo "Disk space before:"
-      #     df -h
-      #     #echo "Listing 100 largest packages"
-      #     #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-      #     #echo "Removing large packages"
-      #     #sudo apt-get remove -y '^ghc-8.*'
-      #     #sudo apt-get remove -y '^dotnet-.*'
-      #     #sudo apt-get remove -y '^llvm-.*'
-      #     #sudo apt-get remove -y 'php.*'
-      #     #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
-      #     #sudo apt-get autoremove -y
-      #     #sudo apt-get clean
-      #     #df -h
-      #     echo "Removing large directories"
-      #     # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
-      #     rm -rf /usr/share/dotnet/
-      #     # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
-      #     rm -rf "/usr/local/share/boost"
-      #     rm -rf "$AGENT_TOOLSDIRECTORY"
-      #     # After
-      #     echo "Disk space after:"
-      #     df -h
-      # - name: 🪛 Build
-      #   uses: game-ci/unity-builder@v2.1.2
-      #   env:
-      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #     ANDROID_VERSION_CODE: ${{ inputs.prNumber }}
-      #   with:
-      #     targetPlatform: ${{ matrix.targetPlatform }}
-      #     projectPath: ./${{ env.REPO_LOCAL }}
-      #     versioning: Custom
-      #     version: ${{ steps.semVer.outputs.SEM_VER }}
-      #     unityVersion: ${{ env.UNITY_VERSION }}
-      # - name: 📁 Rename File [Android.apk]
-      #   if: matrix.targetPlatform == 'Android'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}
-      # - name: 📁 Rename Directory [WebGL]
-      #   if: matrix.targetPlatform == 'WebGL'
-      #   run: |
-      #     sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
-      #     sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
-      #     sudo rm -rf build/${{ matrix.targetPlatform }}
-      # - name: 📤 Upload artifacts
-      #   uses: actions/upload-artifact@v3.1.2
-      #   with:
-      #     name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
-      #     path: build/
-      #     retention-days: 1
+      - name: 🧹 Free Disk Space
+        # if: matrix.targetPlatform == 'Android'
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker images -q)
+          df -h
+          # Before
+          echo "Disk space before:"
+          df -h
+          #echo "Listing 100 largest packages"
+          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+          #echo "Removing large packages"
+          #sudo apt-get remove -y '^ghc-8.*'
+          #sudo apt-get remove -y '^dotnet-.*'
+          #sudo apt-get remove -y '^llvm-.*'
+          #sudo apt-get remove -y 'php.*'
+          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          #sudo apt-get autoremove -y
+          #sudo apt-get clean
+          #df -h
+          echo "Removing large directories"
+          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+          rm -rf /usr/share/dotnet/
+          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          # After
+          echo "Disk space after:"
+          df -h
+      - name: 🪛 Build
+        uses: game-ci/unity-builder@v2.1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ANDROID_VERSION_CODE: ${{ inputs.prNumber }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: ./${{ env.REPO_LOCAL }}
+          versioning: Custom
+          version: ${{ steps.semVer.outputs.SEM_VER }}
+          unityVersion: ${{ env.UNITY_VERSION }}
+      - name: 📁 Rename File [Android.apk]
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/Android.apk build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}.apk
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📁 Rename Directory [WebGL]
+        if: matrix.targetPlatform == 'WebGL'
+        run: |
+          sudo mkdir -p build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}
+          sudo mv build/${{ matrix.targetPlatform }}/WebGL build/${{ inputs.targetBranchName }}/${{ matrix.targetPlatform }}/${{ steps.semVer.outputs.SEM_VER }}
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: build_${{ env.PROJECT_NAME }}_${{ matrix.targetPlatform }}_${{ steps.semVer.outputs.SEM_VER }}
+          path: build/
+          retention-days: 1
     outputs:
       sem_ver: ${{ steps.semVer.outputs.SEM_VER }}
       # commit_id: ${{ steps.commitId.outputs.COMMIT_ID }}
-  # upload:
-  #   needs: buildForAllSupportedPlatforms
-  #   name: 📤 Upload
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 180
-  #   steps:
-  #     - name: 📥 (Android) Download artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: build_${{ env.PROJECT_NAME }}_Android_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
-  #         path: build/
-  #     - name: 📥 (WebGL) Download artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: build_${{ env.PROJECT_NAME }}_WebGL_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
-  #         path: build/
-  #     - name: 📤 Transfer files via FTP
-  #       uses: ercindedeoglu/ftp-transfer-action@v1
-  #       with:
-  #         localDir: "build/"
-  #         remoteDir: "build/${{ env.PROJECT_NAME }}/"
-  #         host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
-  #         user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
-  #         password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
+  upload:
+    needs: buildForAllSupportedPlatforms
+    name: 📤 Upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: 📥 (Android) Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_${{ env.PROJECT_NAME }}_Android_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
+          path: build/
+      - name: 📥 (WebGL) Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build_${{ env.PROJECT_NAME }}_WebGL_${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}
+          path: build/
+      - name: 📤 Transfer files via FTP
+        uses: ercindedeoglu/ftp-transfer-action@v1
+        with:
+          localDir: "build/"
+          remoteDir: "build/${{ env.PROJECT_NAME }}/"
+          host: ${{ secrets.RELEASE_DUBLOK_FTP_HOST }}
+          user: ${{ secrets.RELEASE_DUBLOK_FTP_USERNAME }}
+          password: ${{ secrets.RELEASE_DUBLOK_FTP_PASSWORD }}
   posting:
     # needs: [buildForAllSupportedPlatforms, upload]
     needs: [buildForAllSupportedPlatforms]   
@@ -189,7 +189,7 @@ jobs:
       - name: "📨 Posting to issues"
         run: |
           workItems=($(echo "${{ inputs.workItems }}"))
-          
+
           for workItem in "${workItems[@]}"
           do
               url=$(echo "https://dev.azure.com/dublok/farfps.unity/_apis/wit/workitems/$workItem/comments?api-version=7.1-preview")
@@ -205,11 +205,11 @@ jobs:
             --data-raw '{"comments":[{"content": "# 😍 Version: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}\n**Branch:** [${{ inputs.targetBranchName }}](https://dev.azure.com/dublok/_git/FarFPS.Unity?path=%2F&version=GB${{ inputs.targetBranchName }}&_a=contents)\n**Branch Version:** [Dublok/FarFPS.Unity](https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity?version=GC${{ inputs.commitId }})\n**Commit Id:** [${{ inputs.commitId }}](https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity/commit/${{ inputs.commitId }})\n**Pull Request:** [PR ${{ inputs.prNumber }}](https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity/pullrequest/${{ inputs.prNumber }})\n## 🚀 Releases\n* [WebGL](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/)\n* [Android](https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk)"}]}'
           done
 
-      # - name: "📨 Posting to discord"
-      #   run: |
-      #     curl --location --request POST "https://discord.com/api/channels/${{ env.DISCORD_CHANNEL_ID}}/messages" \
-      #     --header 'Accept: application/vnd.github+json' \
-      #     --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
-      #     --header 'X-GitHub-Api-Version: 2022-11-28' \
-      #     --header 'Content-Type: application/json' \
-      #     --data-raw "{\"content\":\"**😍 VERSION: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }}\n**Branch Version:** https://github.com/${{ env.REPO }}/tree/${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**Commit Id:** ${{ needs.buildForAllSupportedPlatforms.outputs.commit_id }}\n**🚀 Releases:**\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
+      - name: "📨 Posting to discord"
+        run: |
+          curl --location --request POST "https://discord.com/api/channels/${{ env.DISCORD_CHANNEL_ID}}/messages" \
+          --header 'Accept: application/vnd.github+json' \
+          --header 'Authorization: Bot ${{ secrets.DISCORD_DUBLOK_TOKEN }}' \
+          --header 'X-GitHub-Api-Version: 2022-11-28' \
+          --header 'Content-Type: application/json' \
+          --data-raw "{\"content\":\"**😍 Version: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}**\n**Branch:** ${{ inputs.targetBranchName }} (https://dev.azure.com/dublok/_git/FarFPS.Unity?path=%2F&version=GB${{ inputs.targetBranchName }}&_a=contents)\n**Branch Version:** https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity?version=GC${{ inputs.commitId }}\n**Commit Id:** https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity/commit/${{ inputs.commitId }}\n**Pull Request:** https://dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity/pullrequest/${{ inputs.prNumber }}\n**🚀 Releases:**\n* **WebGL:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/WebGL/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}/\n* **Android:** https://release.dublok.com/build/FarFPS/${{ inputs.targetBranchName }}/Android/${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}.apk\"}"
