@@ -31,7 +31,6 @@ on:
         required: true
         default: "0"
 env:
-env:
   PROJECT_NAME: FarFPS
   UNITY_VERSION: 2020.3.43f1
   REPO_LOCAL: repo
