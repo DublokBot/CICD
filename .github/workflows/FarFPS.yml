@@ -195,7 +195,7 @@ jobs:
           do
               url=$(echo "https://dev.azure.com/dublok/farfps.unity/_apis/wit/workitems/$workItem/comments?api-version=7.1-preview")
               echo $url
-              curl --location --request POST $url --header 'Content-Type: application/json' --header 'Authorization: Basic ${{ secrets.AZURE_DEVOPS_DB }}' --data-raw "{\"text\":\"<div><b>😍 Version: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}</b></div><div><b>Branch:</b> <a>${{ inputs.targetBranchName }}</a></div>\"}"
+              curl --location --request POST $url --header 'Content-Type: application/json' --header 'Authorization: Basic ${{ secrets.AZURE_DEVOPS_DB }}' --data-raw "{\"text\":\"<div><b>😍 Version: ${{ needs.buildForAllSupportedPlatforms.outputs.sem_ver }}</b></div><div><b>Branch:</b> <a href=\"https://dev.azure.com/\">${{ inputs.targetBranchName }}</a></div>\"}"
           done
 
         
