@@ -116,8 +116,10 @@ jobs:
       - name: 🪛 Build
         uses: game-ci/unity-builder@v2.1.2
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           ANDROID_VERSION_CODE: ${{ inputs.prNumber }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL_BEYKOZ }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD_BEYKOZ }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL_BEYKOZ }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: ./${{ env.REPO_LOCAL }}
