@@ -41,7 +41,7 @@ jobs:
   buildForAllSupportedPlatforms:
     name: 🧱 Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 600
     strategy:
       fail-fast: false
       matrix:
@@ -69,19 +69,19 @@ jobs:
           cd ${{ env.REPO_LOCAL }}
           echo "Starting checkout of commit id: ${{ inputs.commitId }}"
           git checkout ${{ inputs.commitId }}
-      # - name: 📥 Cache [Library]
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ./${{ env.REPO_LOCAL }}/Library
-      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
-      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
-      - name: 📥 Cache Restore [Library]
-        uses: actions/cache/restore@v3.2.6
-        id: cache-restore
+      - name: 📥 Cache [Library]
+        uses: actions/cache@v3
         with:
           path: ./${{ env.REPO_LOCAL }}/Library
           key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
           restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
+      # - name: 📥 Cache Restore [Library]
+      #   uses: actions/cache/restore@v3.2.6
+      #   id: cache-restore
+      #   with:
+      #     path: ./${{ env.REPO_LOCAL }}/Library
+      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+      #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🌅 Semantic Version
         id: semVer
         run: |
@@ -133,13 +133,13 @@ jobs:
           versioning: Custom
           version: ${{ steps.semVer.outputs.SEM_VER }}
           unityVersion: ${{ env.UNITY_VERSION }}
-      - name: 📤 Cache Save [Library]
-        if: always()
-        uses: actions/cache/save@v3.2.6
-        id: cache-save
-        with:
-          path: ./${{ env.REPO_LOCAL }}/Library
-          key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
+      # - name: 📤 Cache Save [Library]
+      #   if: always()
+      #   uses: actions/cache/save@v3.2.6
+      #   id: cache-save
+      #   with:
+      #     path: ./${{ env.REPO_LOCAL }}/Library
+      #     key: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-${{ env.UNITY_VERSION }}-${{ hashFiles('./repo/Assets/**', './repo/Packages/**', './repo/ProjectSettings/**') }}
       - name: 📁 Rename File [Android.apk]
         if: matrix.targetPlatform == 'Android'
         run: |
@@ -165,7 +165,7 @@ jobs:
     needs: buildForAllSupportedPlatforms
     name: 📤 Upload
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 600
     steps:
       - name: 📥 (Android) Download artifacts
         uses: actions/download-artifact@v3
@@ -189,7 +189,7 @@ jobs:
     needs: [buildForAllSupportedPlatforms, upload]
     name: 🚩 Post comments and messages
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 600
     steps:
       # - name: 💘 Get related issues
       #   if: inputs.prNumber != '0'
