@@ -40,7 +40,7 @@ env:
 jobs:
   buildForAllSupportedPlatforms:
     name: 🧱 Build for ${{ matrix.targetPlatform }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 600
     strategy:
       fail-fast: false
@@ -164,7 +164,7 @@ jobs:
   upload:
     needs: buildForAllSupportedPlatforms
     name: 📤 Upload
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 600
     steps:
       - name: 📥 (Android) Download artifacts
@@ -188,7 +188,7 @@ jobs:
   posting:
     needs: [buildForAllSupportedPlatforms, upload]
     name: 🚩 Post comments and messages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 600
     steps:
       # - name: 💘 Get related issues
