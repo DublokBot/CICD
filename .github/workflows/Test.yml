@@ -55,6 +55,7 @@ jobs:
           - WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
+        shell: /bin/bash
         run: |
           echo "Reason: ${{ inputs.reason }}"
           echo "TargetBranchName: ${{ inputs.targetBranchName }}"
@@ -62,7 +63,8 @@ jobs:
           echo "CommitId: ${{ inputs.commitId }}"
           echo "WorkItems: ${{ inputs.workItems }}"
           echo "MergedPRs: ${{ inputs.mergedPRs }}"
-      - name: Checkout External Repository      
+      - name: Checkout External Repository
+        shell: /bin/bash
         run: |
           echo "Starting cloning of external repository"
           git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
@@ -84,42 +86,43 @@ jobs:
       #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🌅 Semantic Version
         id: semVer
+        shell: /bin/bash
         run: |
           prNumber=${{ inputs.prNumber }}
           semver=$(printf %09d $prNumber | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
           echo "SEMANTIC VERSION: " $semver
           echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
-      - name: 🧹 Free Disk Space
-        # if: matrix.targetPlatform == 'Android'
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker images -q)
-          df -h
-          # Before
-          echo "Disk space before:"
-          df -h
-          #echo "Listing 100 largest packages"
-          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-          #echo "Removing large packages"
-          #sudo apt-get remove -y '^ghc-8.*'
-          #sudo apt-get remove -y '^dotnet-.*'
-          #sudo apt-get remove -y '^llvm-.*'
-          #sudo apt-get remove -y 'php.*'
-          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
-          #sudo apt-get autoremove -y
-          #sudo apt-get clean
-          #df -h
-          echo "Removing large directories"
-          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
-          rm -rf /usr/share/dotnet/
-          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
-          rm -rf "/usr/local/share/boost"
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          # After
-          echo "Disk space after:"
-          df -h
+      # - name: 🧹 Free Disk Space
+      #   # if: matrix.targetPlatform == 'Android'
+      #   run: |
+      #     sudo swapoff -a
+      #     sudo rm -f /swapfile
+      #     sudo apt clean
+      #     docker rmi $(docker images -q)
+      #     df -h
+      #     # Before
+      #     echo "Disk space before:"
+      #     df -h
+      #     #echo "Listing 100 largest packages"
+      #     #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+      #     #echo "Removing large packages"
+      #     #sudo apt-get remove -y '^ghc-8.*'
+      #     #sudo apt-get remove -y '^dotnet-.*'
+      #     #sudo apt-get remove -y '^llvm-.*'
+      #     #sudo apt-get remove -y 'php.*'
+      #     #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+      #     #sudo apt-get autoremove -y
+      #     #sudo apt-get clean
+      #     #df -h
+      #     echo "Removing large directories"
+      #     # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+      #     rm -rf /usr/share/dotnet/
+      #     # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+      #     rm -rf "/usr/local/share/boost"
+      #     rm -rf "$AGENT_TOOLSDIRECTORY"
+      #     # After
+      #     echo "Disk space after:"
+      #     df -h
       - name: 🪛 Build
         uses: game-ci/unity-builder@v2.1.2
         env:
