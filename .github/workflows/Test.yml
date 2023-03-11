@@ -85,10 +85,10 @@ jobs:
       - name: 🌅 Semantic Version
         id: semVer
         run: |
-          prNumber=${{ inputs.prNumber }}
-          semver=$(printf "%09d" $prNumber | awk '{gsub(/(...)/,"&."); print}')
-          echo "SEMANTIC VERSION: " $semver
-          echo "SEM_VER=$semver" >> $GITHUB_OUTPUT
+            $prNumber = 0
+            $semver = ($prNumber.ToString().PadLeft(9, "0") -replace "(\d{3})", ".$1")
+            Write-Output "SEMANTIC VERSION: $semver"
+            Add-Content $env:GITHUB_OUTPUT "SEM_VER=$semver"
       # - name: 🧹 Free Disk Space
       #   # if: matrix.targetPlatform == 'Android'
       #   run: |
