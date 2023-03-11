@@ -65,7 +65,7 @@ jobs:
       - name: Checkout External Repository      
         run: |
           echo "Starting cloning of external repository"
-          git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 .
+          git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
           cd ${{ env.REPO_LOCAL }}
           echo "Starting checkout of commit id: ${{ inputs.commitId }}"
           git checkout ${{ inputs.commitId }}
