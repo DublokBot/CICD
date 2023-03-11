@@ -33,7 +33,7 @@ on:
 env:
   PROJECT_NAME: FarFPS
   UNITY_VERSION: 2020.3.43f1
-  REPO_LOCAL: repo
+  REPO_LOCAL: ./repo
   REPO: DublokSoftware/FarFPS.Unity
   DISCORD_CHANNEL_ID: "1062954988990648320"
   AZURE_REPO: https://dublok@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity
