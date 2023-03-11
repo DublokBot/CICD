@@ -55,7 +55,7 @@ jobs:
           - WebGL # WebGL.
     steps:
       - name: "📫 Reason: ${{ inputs.reason }}"
-        shell: bash
+        shell: pwsh
         run: |
           echo "Reason: ${{ inputs.reason }}"
           echo "TargetBranchName: ${{ inputs.targetBranchName }}"
@@ -64,7 +64,7 @@ jobs:
           echo "WorkItems: ${{ inputs.workItems }}"
           echo "MergedPRs: ${{ inputs.mergedPRs }}"
       - name: Checkout External Repository
-        shell: bash
+        shell: pwsh
         run: |
           echo "Starting cloning of external repository"
           git clone -c remote.origin.fetch=+${{ inputs.commitId }}:refs/remotes/origin/${{ inputs.commitId }} https://${{ secrets.AZURE_GIT_AUTH }}@dev.azure.com/dublok/FarFPS.Unity/_git/FarFPS.Unity --no-checkout --progress --depth 1 ${{ env.REPO_LOCAL }}
@@ -86,7 +86,7 @@ jobs:
       #     restore-keys: ${{ env.PROJECT_NAME }}-${{ matrix.targetPlatform }}-Library-
       - name: 🌅 Semantic Version
         id: semVer
-        shell: bash
+        shell: pwsh
         run: |
           prNumber=${{ inputs.prNumber }}
           semver=$(printf %09d $prNumber | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')
